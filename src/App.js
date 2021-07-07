@@ -1,25 +1,60 @@
-import logo from './logo.svg';
+import React, { Component } from 'react';
 import './App.css';
+import Card from './Card';
+import PricingTable from './PricingTable';
+import LDClient from 'ldclient-js'
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+
+
+class App extends Component {
+  constructor() {
+    super()
+    this.state = {
+      progressBarEnabled: null
+    }
+  }
+  
+  componentDidMount() {
+    const user = {
+      key: 'mpj',
+      email:'slahiru.nuwan@gmail.com'
+    }
+    this.ldclient = LDClient.initialize('60e3ebcc51479b247fe3a17f', user)
+    this.ldclient.on('ready', this.onLaunchDarklyUpdated.bind(this))
+    this.ldclient.on('change', this.onLaunchDarklyUpdated.bind(this)) 
+  }
+
+  onLaunchDarklyUpdated() {
+    console.log(this.ldclient.variation('progress-bar-feature'))
+    this.setState({
+      featureFlags: {
+         progressBarEnabled: this.ldclient.variation('progress-bar-feature')
+      }
+    })
+  }
+
+
+  render(){
+    if (!this.state.featureFlags) {
+      return <div className="App">Loading....</div>
+    }
+
+    return (
+      <div className="App">
+        <h1>Sample Project</h1>
+        <div>
+          {this.state.featureFlags.progressBarEnabled?<Card></Card>:null}
+        </div>
+        <div>
+          <PricingTable></PricingTable>
+          <PricingTable></PricingTable>
+          <PricingTable></PricingTable>
+        </div>
+        
+      </div>
+    )
+  }
+ 
 }
 
 export default App;
